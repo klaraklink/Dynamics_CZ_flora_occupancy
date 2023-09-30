@@ -1,8 +1,10 @@
 # Occupancy_models_CZ
 
-* Supplementary code to the article: 
-* Klinkovská et al. Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes
-* Author: Klára Klinkovská, Michael Glaser 
+Supplementary code to the article: 
+
+Klinkovská et al. Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes
+
+Author: Klára Klinkovská, Michael Glaser 
 
 ## R scripts:
 
