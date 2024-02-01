@@ -14,3 +14,5 @@ This repository contains R scripts used to analyse temporal trends in the data f
 * `diag.R`: Extract diagnostics for occupancy models.
 * `occ_results.R` Get csv file with occupancy estimates from the RData object.
 * `meta_results.R` Subsequent analysis of species trends linked with species characteristics - linear models, chi-square tests, time series clustering.
+
+model for JAGS - randomwalk txt file
