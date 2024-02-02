@@ -1,5 +1,0 @@
-#!/bin/bash
-
-for i in pladias/jobs/*.sh
-do qsub $i
-done

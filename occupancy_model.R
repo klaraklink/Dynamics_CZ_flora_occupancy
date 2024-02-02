@@ -1,16 +1,16 @@
 #' Supplementary code to the article: 
-#' Klinkovská et al. Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes
+#' Klinkovska et al. (2024) Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes. Biological Conservation.
 #' 
-#' Author: Klára Klinkovská, Michael Glaser, 2023-06-21
+#' Author: Michael Glaser, Klara Klinkovska, 2023-06-21
 #' R version 4.0.0
-#' run at MetaCentrum
+#' run at MetaCentrum 
 
-library("readr")
-library("backports")
-library("lattice")
-library("runjags")
+library(readr)
+library(backports)
+library(lattice)
+library(runjags)
 
-args = commandArgs(trailingOnly=TRUE)
+args = commandArgs(trailingOnly = TRUE)
 
 ### function for occupancy model
 occ.model <- function(n.iter, n.chains, n.burnin, n.thin, n.adapt, save.pars, specname){
@@ -31,22 +31,22 @@ occ.model <- function(n.iter, n.chains, n.burnin, n.thin, n.adapt, save.pars, sp
   h           <- specdata$hab.map                           ### record type, habitat mapping or not
   
   ### combine into list (JAGS needs a list as input format)
-  data.list <- list("nyear"=nyear, "nsite"=nsite, "nvisit"=nvisit,
-                  "y"=y, "logL"=logL, "Site"=Site, "Year"=Year, "h"=h)
+  data.list <- list("nyear" = nyear, "nsite" = nsite, "nvisit" = nvisit,
+                  "y" = y, "logL" = logL, "Site" = Site, "Year" = Year, "h" = h)
   
   ### Occupancy model
   mod.start <- Sys.time()
   
-  jagsres <- autorun.jags(model=paste0("MODELS/randomwalk_ht.txt"), method="parallel",  max.time="94 hours",
-                        data=data.list, modules=c("glm","dic"), monitor=save.pars,
-                        thin=n.thin, thin.sample=T, adapt=n.adapt,  startburnin=n.burnin, 
-                        n.chains=n.chains, startsample=n.iter)
+  jagsres <- autorun.jags(model = paste0("MODELS/randomwalk_ht.txt"), method = "parallel",
+                          max.time = "94 hours", data = data.list, modules = c("glm","dic"), 
+                          monitor = save.pars, thin = n.thin, thin.sample = T, adapt = n.adapt, 
+                          startburnin = n.burnin, n.chains = n.chains, startsample = n.iter)
   
   mod.end <- Sys.time()
   
-  runtime <- as.numeric(mod.end-mod.start, units="hours")
+  runtime <- as.numeric(mod.end-mod.start, units = "hours")
   
-  saveRDS(jagsres, file=paste0("OUTPUT/", specname, "_pladias_randomwalk_grid_small_thin", n.thin,".rds"))
+  saveRDS(jagsres, file = paste0("OUTPUT/", specname, "_pladias_randomwalk_grid_small_thin", n.thin,".rds"))
   
   write_csv(as.data.frame(runtime), paste0("OUTPUT/", specname, "_runtime.csv"))
   
@@ -63,7 +63,3 @@ specname <- args[1]
 
 # run the function
 thisspec.occ <- occ.model(n.iter, n.chains, n.burnin, n.thin, n.adapt, save.pars, specname)
-
-
-
-

@@ -1,7 +1,7 @@
 #' Supplementary code to the article: 
-#' Klinkovská et al. Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes
+#' Klinkovska et al. (2024) Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes. Biological Conservation.
 #' 
-#' Author: Klára Klinkovská, Michael Glaser, 2023-06-21
+#' Author: Michael Glaser, Klara Klinkovska, 2023-06-21
 #' R version 4.0.0
 #' run at MetaCentrum
 
@@ -33,8 +33,8 @@ occ.diag <- function(filepath){
     jagsres <- readRDS(paste0(filepath, "/", RData.list[e]))
     specname <- str_remove(RData.list[e], "_pladias_randomwalk_grid_small_thin5.rds") %>% 
       str_replace_all("_", " ")
-    parlabeldf <- data.frame(Parameter = paste0("psi.fs[",1:12,"]"),
-                             Label = paste0(seq(1960,2015,5),"s"))
+    parlabeldf <- data.frame(Parameter = paste0("psi.fs[", 1:12, "]"),
+                             Label = paste0(seq(1960, 2015, 5), "s"))
     
     ### extract diagnostics
     jagsres.ggs2 <- ggs(jagsres$mcmc,keep_original_order = T, family = "psi.fs", par_labels = parlabeldf)
@@ -73,8 +73,8 @@ for (sp in specunique){
     thispage <- ggplot(jags.ggs.sp, aes(x = Iteration, y = value, color = factor(Chain)))+
       theme_classic()+
       geom_line() +
-      scale_y_continuous(expand = c(0,0), limits = c(0,1))+
-      scale_x_continuous(expand = c(0,0))+
+      scale_y_continuous(expand = c(0, 0), limits = c(0, 1))+
+      scale_x_continuous(expand = c(0, 0))+
       facet_wrap_paginate(~Parameter, nrow = 2, ncol = 1, scales = "fixed", page = pages)+
       ggtitle(sp)
     
@@ -90,7 +90,7 @@ for (sp in specunique){
   
   # occupancy estimates, CIs and linear trend
   jagsres.ci <- ci(test$jagsres.ggs[test$jagsres.ggs$specname == sp,])
-  jagsres.ci$parnum <- as.numeric(as.character(gsub("s","",jagsres.ci$Parameter)))
+  jagsres.ci$parnum <- as.numeric(as.character(gsub("s", "", jagsres.ci$Parameter)))
   
   occ.lm <- lm(jagsres.ci$median~jagsres.ci$parnum)
   occ.int <- occ.lm$coefficients[["(Intercept)"]]
@@ -102,11 +102,11 @@ for (sp in specunique){
     geom_line(linetype = "dashed")+
     geom_ribbon(aes(ymin = Low,ymax = High), color = "grey20", alpha = 0.1)+
     geom_ribbon(aes(ymin = low,ymax = high), color = "grey50", alpha = 0.1)+
-    scale_y_continuous(limits = c(0,1), expand = c(0,0), breaks = seq(0,1,0.1))+
-    scale_x_continuous(limits = c(min(jagsres.ci$parnum),max(jagsres.ci$parnum)),expand = c(0,0.5),
+    scale_y_continuous(limits = c(0, 1), expand = c(0, 0), breaks = seq(0, 1, 0.1))+
+    scale_x_continuous(limits = c(min(jagsres.ci$parnum),max(jagsres.ci$parnum)),expand = c(0, 0.5),
                        breaks = jagsres.ci$parnum, labels = jagsres.ci$Parameter)+
     theme(axis.text.x = element_text(hjust = 0.85))+
-    ggtitle(paste("Occupancy and CIs for",sp,"lm-trend = ",round(occ.slo,3)))+
+    ggtitle(paste("Occupancy and CIs for", sp, "lm-trend = ", round(occ.slo, 3)))+
     xlab("timestep")+
     ylab("median occupancy")
   
