@@ -1,0 +1,66 @@
+# Supplementary code to the article: 
+# Klinkovska et al. (2024) Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes. Biological Conservation.
+# 
+# JAGS Occupancy model code originally from 
+# Outhwaite et al. (2018) Prior specification in Bayesian occupancy modelling improves analysis of species occurrence data. Ecological Indicators, 93, 333-343. https://doi.org/10.1016/j.ecolind.2018.05.010
+# 
+# modified by Klara Klinkovska & Michael Glaser, 2023-06-21
+
+
+model{ 
+   ### Priors ###
+
+  # State model priors
+  b[1] ~ dnorm(mu.b, 0.0001)           # random walk prior on year effect
+  for(t in 2:nyear){
+    b[t] ~ dnorm(b[t-1], tau.b)
+  }
+  mu.b ~ dnorm(0, 0.01)
+  tau.b <- 1/(sd.b * sd.b)			
+  sd.b ~ dt(0, 1, 1)T(0,)		# half-Cauchy hyperpriors 
+
+  for (i in 1:nsite) {
+    u[i] ~ dnorm(0, tau.u) 	# random site effect      
+  } 
+  
+  tau.u <- 1/(sd.u * sd.u) 	
+  sd.u ~ dt(0, 1, 1)T(0,)		# half-Cauchy hyperpriors 
+
+  # Observation model priors 
+  for (t in 1:nyear) {
+    a[t] ~ dnorm(mu.a, tau.a) 	# random year effect           
+  }
+  
+  mu.a ~ dnorm(0, 0.01)                         
+  tau.a <- 1 / (sd.a * sd.a)             
+  sd.a ~ dt(0, 1, 1)T(0,)		# half-Cauchy hyperpriors 
+
+  c ~ dunif(-10, 10) 		# sampling effort effect
+  e ~ dunif(-10, 10) 		# record origin effect
+
+  ### Model ###
+
+  # State model
+  for (i in 1:nsite){ 
+    for (t in 1:nyear){   
+      z[i,t] ~ dbern(psi[i,t]) 
+      logit(psi[i,t])<- b[t] + u[i] 
+    }}   
+  
+  # Observation model 
+  for(j in 1:nvisit) {
+    y[j] ~ dbern(Py[j]+0.00001)
+    Py[j]<- z[Site[j],Year[j]] * p[j]      
+    logit(p[j]) <- a[Year[j]] + c*logL[j] + e*h[j] # added record origin type h
+  }
+   
+  ### Derived parameters ###
+  # Finite sample occupancy - proportion of occupied sites
+  for (t in 1:nyear) {  
+    psi.fs[t] <- sum(z[1:nsite,t])/nsite
+  } 
+  
+  #data#
+  #monitor#
+  
+}
