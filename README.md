@@ -4,7 +4,7 @@
 
 Klinkovská K., Glaser M., Danihelka J., Kaplan Z., Knollová I., Novotný P., Pyšek P., Řezníčková M., Wild J. & Chytrý M. (2024) Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes. Biological Conservation.
 
-This repository contains data from the Pladias Database of the Czech Flora and Vegetation (https://pladias.cz/en/) and code used to analyse temporal trends of species of Czech flora in 1961-2020. 
+This repository contains data from the Pladias Database of the Czech Flora and Vegetation (https://pladias.cz/en/) and code used to analyse temporal trends of species of Czech flora from 1961 to 2020. 
 
 ## Data
 ### Data used to calculate species temporal trends
@@ -31,5 +31,5 @@ The data used to estimate the species trends using occupancy models are availabl
 
 * `occupancy_model.R`: Run occupancy model for the given species from R.
 * `diag.R`: Extract diagnostics for occupancy models.
-* `occ_results.R` Get csv file with occupancy estimates from the RData object.
-* `meta_results.R` Subsequent analysis of species trends linked with species characteristics - linear models, chi-square tests, time series clustering.
+* `occ_results.R`: Get csv file with occupancy estimates from the RData object.
+* `meta_results.R`: Subsequent analysis of species trends linked with species characteristics - linear models, chi-square tests, time series clustering.
