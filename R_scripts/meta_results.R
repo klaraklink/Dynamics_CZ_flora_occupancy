@@ -252,15 +252,15 @@ annot.plot.1col <- function(df, colvec, colname, title.left,
 # loading data ------------------------------------------------------------
 
 # load occupancy results, join numbers of occurrences in each half-decade
-occ.res <- read_csv("meta_data/occ_results.csv") %>% 
-  left_join(read_csv("meta_data/records_decades.csv"), by = c("specname" = "name_lat", "parnum" = "half_dec"))
+occ.res <- read_csv("data/occ_results.csv") %>% 
+  left_join(read_csv("data/records_decades.csv"), by = c("specname" = "name_lat", "parnum" = "half_dec"))
 
 # list of species with not converging results
-n.conv.full <- read_csv("meta_data/not_conv_all.csv")
+n.conv.full <- read_csv("data/not_conv_all.csv")
 
 # clipping records, calculation of regression slopes and filtering species with significant trends 
 resdf.clip <- occ.res %>% 
-  left_join(read_csv("meta_data/records_decades.csv") %>% 
+  left_join(read_csv("data/records_decades.csv") %>% 
               filter(pres != 0) %>% 
               group_by(name_lat) %>% 
               summarize(clip.min = min(half_dec), clip.max = max(half_dec)), by = c("specname" = "name_lat")) %>% 
@@ -281,7 +281,7 @@ resdf.clip <- occ.res %>%
 
 # join species trends with with their characteristics and modify columns
 resdf.clip.join <- resdf.clip %>% 
-  left_join(read_csv('meta_data/species_characteristics.csv')) |> 
+  left_join(read_csv('data/species_characteristics.csv')) |> 
   mutate(IUCN = str_replace_na(IUCN) |> fct_relevel(c("CR", "EN", "VU", "NT", "LC", 'NA')))
 
 # general statements ------------------------------------------------------
@@ -761,11 +761,11 @@ resdf.clip.join2 %>%
 # export clustering results to csv
 resdf.clip.join2 %>% 
   select(specname, cluster) %>% 
-  write_csv("clustering_results.csv")
+  write_csv("data/clustering_results.csv")
 
 # loading clustering results
 resdf.clip.join2 <- resdf.clip.join %>%
-  left_join(read_csv('meta_data/clustering_results.csv'))
+  left_join(read_csv('data/clustering_results.csv'))
 
 # join occupancy trends with clutering results
 spec.trend <- occ.res %>%  
@@ -971,7 +971,7 @@ chi.n <- chi.test.clust(col1 = "symbiosis_N_fixers", col2 = "no_nitrogen_fixing"
 
 # export table with species trends Appendix A.3 ------------------------
 occ.res %>% 
-  left_join(read_csv("meta_data/records_decades.csv") %>% 
+  left_join(read_csv("data/records_decades.csv") %>% 
               filter(pres != 0) %>% 
               group_by(name_lat) %>% 
               summarize(clip.min = min(half_dec), clip.max = max(half_dec)), 
