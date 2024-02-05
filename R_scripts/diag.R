@@ -3,7 +3,7 @@
 #' 
 #' Author: Michael Glaser, Klara Klinkovska, 2023-06-21
 #' R version 4.0.0
-#' run at MetaCentrum
+#' ran at MetaCentrum
 
 library(tidyverse)
 library(ggmcmc)
@@ -53,23 +53,23 @@ occ.diag <- function(filepath){
 }
 
 # get diagnostics
-test <- occ.diag("OUTPUT/")
+diag <- occ.diag("OUTPUT/")
 
 # list of species with not converging results according to Rhat statistics
-n_conv <- test$conv %>% 
+n_conv <- diag$conv %>% 
   filter(Diagnostic == "Rhat" & value >= 1.1) %>% 
   write_csv("diag/not_conv2.csv")
 
 # export plots to check diagnostics manually
-specunique <- unique(test$conv$specname)
+specunique <- unique(diag$conv$specname)
 for (sp in specunique){
   
-  jags.ggs.sp <- test$jagsres.ggs[test$jagsres.ggs$specname == sp,]
+  jags.ggs.sp <- diag$jagsres.ggs[diag$jagsres.ggs$specname == sp,]
   
   pdf(paste0("diag/", str_replace_all(sp, " ", "_"), "_pladias_randomwalk_grid_small_thin5.pdf")) 
   
   # traceplots
-  for (pages in c(1:5)){
+  for (pages in c(1:6)){
     thispage <- ggplot(jags.ggs.sp, aes(x = Iteration, y = value, color = factor(Chain)))+
       theme_classic()+
       geom_line() +
@@ -89,7 +89,7 @@ for (sp in specunique){
     ggtitle(sp)
   
   # occupancy estimates, CIs and linear trend
-  jagsres.ci <- ci(test$jagsres.ggs[test$jagsres.ggs$specname == sp,])
+  jagsres.ci <- ci(diag$jagsres.ggs[diag$jagsres.ggs$specname == sp,])
   jagsres.ci$parnum <- as.numeric(as.character(gsub("s", "", jagsres.ci$Parameter)))
   
   occ.lm <- lm(jagsres.ci$median~jagsres.ci$parnum)

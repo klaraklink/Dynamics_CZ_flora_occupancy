@@ -4,38 +4,37 @@
 #' Author: Klara Klinkovska, Michael Glaser, 2023-09-22
 #' R version 4.3.0
 
-
 # loading packages --------------------------------------------------------
 
-library(plyr) # version 1.8.8
+library(plyr) # version 1.8.8 
 
 ###### tables
-library(janitor) # version 2.2.0
-library(data.table) # version 1.14.8
-library(readxl) # version 1.4.2
+library(janitor) # version 2.2.0 
+library(data.table) # version 1.14.8 
+library(readxl) # version 1.4.2 
 
 ###### stats
-library(modelsummary) # version 1.4.1
+library(modelsummary) # version 1.4.1 
 library(rstatix) # version 0.7.2
+library(broom) # version 1.0.5
 
 ###### graphics
-library(broom) # version 1.0.5
-library(gridExtra) # version 2.3
-library(ggpmisc) # version 0.5.2
-library(corrplot) # version 0.92
-library(ggforce) # version 0.4.1
+library(gridExtra) # version 2.3 
+library(ggpmisc) # version 0.5.2 
+library(corrplot) # version 0.92 
+library(ggforce) # version 0.4.1 
 library(ggfortify) # version 0.4.16
-library(patchwork) # version 1.1.2
-library(ggpubr) # version 0.6.0
-library(svglite) # version 2.1.1
-library(multcompView) # version 0.1-9
-library(ggtext)
+library(patchwork) # version 1.1.2 
+library(ggpubr) # version 0.6.0 
+library(svglite) # version 2.1.1 
+library(multcompView) # version 0.1-9 
+library(ggtext) # version 0.1.2
 
-# clustering
-library(car) # version 3.1-2
-library(dtwclust) # version 5.5.12
+# time series clustering
+library(car) # version 3.1-2 
+library(dtwclust) # version 5.5.12 
 
-library(tidyverse) # version 2.0.0
+library(tidyverse) # version 2.0.0 
 
 # plot settings -----------------------------------------------------------
 path.plots <- "plots/"
@@ -50,12 +49,11 @@ clust.col <- c("1" = "#00C19F", "2" = "#00B9E3", "3" = "#53B400", "4" = "#F8766D
 ### Mytheme
 t.size <- 3
 
-my.theme <- theme(
-  plot.title = element_text(size = unit(14, "points"), face = "bold"),
-  axis.title = element_text(size = unit(10, "points"), face = "bold"),
-  axis.text = element_text(size = unit(8, "points")), 
-  legend.title = element_text(size = unit(10, "points"), face = "bold"), 
-  legend.text = element_text(size = unit(8, "points")))
+my.theme <- theme(plot.title = element_text(size = unit(14, "points"), face = "bold"),
+                  axis.title = element_text(size = unit(10, "points"), face = "bold"),
+                  axis.text = element_text(size = unit(8, "points")), 
+                  legend.title = element_text(size = unit(10, "points"), face = "bold"), 
+                  legend.text = element_text(size = unit(8, "points")))
 
 # functions ---------------------------------------------------------------
 
@@ -253,16 +251,16 @@ annot.plot.1col <- function(df,colvec, colname, title.left,
 
 # loading data ------------------------------------------------------------
 
-# load occupancy results
-occ.res <- read_csv("results/occ_results_occupancy_60half_20230801.csv") %>% 
-  left_join(read_csv("results/records_decades.csv"), by = c("specname" = "name_lat", "parnum" = "half_dec"))
+# load occupancy results, join numbers of occurrences in each half-decade
+occ.res <- read_csv("meta_data/occ_results_occupancy_60half_20230801.csv") %>% 
+  left_join(read_csv("meta_data/records_decades.csv"), by = c("specname" = "name_lat", "parnum" = "half_dec"))
 
 # list of species with not converging results
-n.conv.full <- read_csv("results/not_conv_all_230918.csv")
+n.conv.full <- read_csv("meta_data/not_conv_all_230918.csv")
 
 # clipping records, calculation of regression slopes and filtering species with significant trends 
 resdf.clip <- occ.res %>% 
-  left_join(read_csv("results/records_decades.csv") %>% 
+  left_join(read_csv("meta_data/records_decades.csv") %>% 
               filter(pres != 0) %>% 
               group_by(name_lat) %>% 
               summarize(clip.min = min(half_dec), clip.max = max(half_dec)), by = c("specname" = "name_lat")) %>% 
@@ -281,103 +279,10 @@ resdf.clip <- occ.res %>%
 
 # link with species characteristics ---------------------------------------
 
-# load species characteristics data
-alien <- read_csv2("traits/Pysek_Appendix_2_KK2.csv") # list of alien species
-eiv <- read_csv2("traits/complexExport-Pladias-2022-10-27_KK.csv") # ecological indicator values
-trait <- read_delim("traits/complexExport-Pladias-2023-04-19-Klinkovska_edit.csv") # species characteristics
-iucn <- read_xlsx("traits/Cerveny_seznam_2017_2IUCN.xlsx") # Red list status
-
 # join species trends with with their characteristics and modify columns
 resdf.clip.join <- resdf.clip %>% 
-  left_join(eiv %>% select(lat_name, EIV_light:dist_str_based), by = c("specname" = "lat_name")) %>% 
-  left_join(trait, by = c("specname" = "lat_name")) %>% 
-  left_join(iucn, by = c("specname" = "Taxon")) %>% 
-  left_join(alien, by = c("specname" = "Taxon")) %>% 
-  mutate_all(~ifelse(.x == "FALSE|NA", NA, .x)) %>% 
-  mutate(alien = revalue(`Residence time`, replace = c("ar NE" = "archaeophyte",
-                                                       "ar EM" = "archaeophyte",
-                                                       "ar ENE" = "archaeophyte",
-                                                       "ar LM" = "archaeophyte",
-                                                       "ar RMP" = "archaeophyte",
-                                                       "neo 2" = "neophyte", 
-                                                       "neo 1" = "neophyte", 
-                                                       "neo 4" = "neophyte",
-                                                       "neo 3" = "neophyte",
-                                                       "neo *" = "neophyte",
-                                                       "ar *" = "archaeophyte", 
-                                                       "ar Br" = "archaeophyte",
-                                                       "ar BR" = "archaeophyte",
-                                                       "ar IR" = "archaeophyte", 
-                                                       "ar/neo" = "archaeophyte")) %>% 
-           replace_na("native") %>% 
-           factor(levels = c("native", "archaeophyte", "neophyte"), ordered = T),
-         IUCN = str_replace(IUCN, "LC\\(NA\\)|NA", "NA") %>% replace_na("NA"),
-         flower_period_3 = coalesce(flower_period_3, flower_period_4),
-         flower_period_7 = coalesce(flower_period_7, flower_period_8),
-         flower_period_9 = coalesce(flower_period_9, flower_period_10),
-         selfing = coalesce(selfing, cleistogamy, pseudocleistogamy, geitonogamy),
-         GR_apomixis = coalesce(GR_apomixis, GR_fac_apomixis, GR_obl_apomixis),
-         GR_autogamy = coalesce(GR_autogamy, GR_fac_autogamy),
-         GR_allogamy = coalesce(GR_allogamy, GR_fac_allogamy, GR_allogamy_selfincomp), 
-         RT_only_veg = coalesce(RT_only_veg, RT_mostly_veg),
-         RT_only_seed = coalesce(RT_only_seed, RT_mostly_seed),
-         Par_root_hemiparasite = coalesce(Par_root_hemiparasite, Par_stem_hemiparasite, 
-                                          Par_root_holoparasite, Par_stem_holoparasite), 
-         Par_full_mycoheterotroph = coalesce(Par_part_ini_mycoheterotroph, Par_full_mycoheterotroph),
-         symbiosis_rhizobia = coalesce(symbiosis_rhizobia, symbiosis_Frankia),
-         myrmecochorous = coalesce(myrmecochorous, myrmecochorous_nv), 
-         probably_myrmecochorous = coalesce(probably_myrmecochorous, probably_myrmecochorous_nv), 
-         probably_non_myrmecochorous = coalesce(probably_non_myrmecochorous, probably_non_myrmecochorous_nv), 
-         non_myrmecochorous_a = coalesce(non_myrmecochorous_a, non_myrmecochorous_a_nv), 
-         non_myrmecochorous_b = coalesce(non_myrmecochorous_b, non_myrmecochorous_b_nv), 
-         height_mean = (height_min+height_max)/2) %>% 
-  rename("Par_parasite" = "Par_root_hemiparasite", "Par_mycoheterotroph" = "Par_full_mycoheterotroph", 
-         "flower_period_3_4" = "flower_period_3", "flower_period_7_8" = "flower_period_7", 
-         "flower_period_9_10" = "flower_period_9", "symbiosis_N_fixers" = "symbiosis_rhizobia", 
-         "RT_seed" = "RT_only_seed", "RT_veg" = "RT_only_veg") %>% 
-  select(-c(GR_fac_apomixis, GR_obl_apomixis, GR_fac_autogamy, GR_fac_allogamy, 
-            GR_allogamy_selfincomp, GR_sterility, disp_gametophyte, 
-            Par_stem_hemiparasite, Par_stem_holoparasite, Par_root_holoparasite,
-            Par_part_ini_mycoheterotroph, myrmecochorous_nv, probably_myrmecochorous_nv, 
-            probably_non_myrmecochorous_nv, non_myrmecochorous_a_nv, non_myrmecochorous_b_nv, 
-            flower_period_4, flower_period_8, flower_period_10, flower_period_1, 
-            flower_period_2, flower_period_11, flower_period_12, cleistogamy, pseudocleistogamy, 
-            geitonogamy, water_pollination, symbiosis_Frankia, RT_mostly_seed, RT_mostly_veg, 
-            ploidy_3, ploidy_5, ploidy_7, ploidy_12:ploidy_72, EIV_salinity, dist_str_based, 
-            pladias_id, LF_macrophanerophyte:CSR, leaf_size, SLA, Carnivory, ploidy_2:XEA, 
-            eco_spec_nonforest:taxon_weight_ESI_forest, colonization_potential:continentality, 
-            "Residence time", Invasion_status, Origin, disp_spore:disp_budding, 
-            GF_parasitic_epiphyte, GF_woody_liana, height_min, height_max)) %>% 
-  mutate(nr.gf = rowSums(select(., GF_annual:GF_tree) == "TRUE", na.rm = T),
-         nr.lls = rowSums(select(., LLS_overwintering_green:LLS_evergreen) == "TRUE", na.rm = T),
-         nr.la = rowSums(select(., LA_succulent:LA_hydromorphic) == "TRUE", na.rm = T),
-         nr.flower.per = rowSums(select(., flower_period_3_4:flower_period_9_10) == "TRUE", na.rm = T),
-         nr.flower.ph = rowSums(select(., flower_phase_1:flower_phase_9) == "TRUE", na.rm = T),
-         nr.gr = rowSums(select(., GR_allogamy:GR_apomixis) == "TRUE", na.rm = T),
-         nr.poll = rowSums(select(., wind_pollination:selfing) == "TRUE", na.rm = T), 
-         nr.rt = rowSums(select(., RT_veg:RT_seed) == "TRUE", na.rm = T), 
-         nr.ds = rowSums(select(., DS_Allium:DS_Zea) == "TRUE", na.rm = T),
-         nr.myr = rowSums(select(., myrmecochorous:non_myrmecochorous_b) == "TRUE", na.rm = T),
-         nr.par = rowSums(select(., c(Par_autotrophic, Par_parasite, Par_mycoheterotroph)) == "TRUE", na.rm = T),
-         nr.sym = rowSums(select(., symbiosis_N_fixers:no_nitrogen_fixing) == "TRUE", na.rm = T)) %>% 
-  mutate_at(vars(GF_annual:GF_tree), ~ifelse(.x == "TRUE", 1/nr.gf, 0)) %>% 
-  mutate_at(vars(LLS_overwintering_green:LLS_evergreen), ~ifelse(.x == "TRUE", 1/nr.lls, 0)) %>% 
-  mutate_at(vars(LA_succulent:LA_hydromorphic), ~ifelse(.x == "TRUE", 1/nr.la, 0)) %>% 
-  mutate_at(vars(flower_period_3_4:flower_period_9_10), ~ifelse(.x == "TRUE", 1/nr.flower.per, 0)) %>% 
-  mutate_at(vars(flower_phase_1:flower_phase_9), ~ifelse(.x == "TRUE", 1/nr.flower.ph, 0)) %>% 
-  mutate_at(vars(GR_allogamy:GR_apomixis), ~ifelse(.x == "TRUE", 1/nr.gr, 0)) %>%
-  mutate_at(vars(wind_pollination:selfing), ~ifelse(.x == "TRUE", 1/nr.poll, 0)) %>%
-  mutate_at(vars(RT_veg:RT_seed), ~ifelse(.x == "TRUE", 1/nr.rt, 0)) %>%
-  mutate_at(vars(DS_Allium:DS_Zea), ~ifelse(.x == "TRUE", 1/nr.ds, 0)) %>%
-  mutate_at(vars(myrmecochorous:non_myrmecochorous_b), ~ifelse(.x == "TRUE", 1/nr.myr, 0)) %>%
-  mutate_at(vars(c(Par_autotrophic, Par_parasite, Par_mycoheterotroph)), ~ifelse(.x == "TRUE", 1/nr.par, 0)) %>%
-  mutate_at(vars(symbiosis_N_fixers:no_nitrogen_fixing), ~ifelse(.x == "TRUE", 1/nr.sym, 0)) %>%
-  mutate_at(vars(height_mean, dist_freq:dist_sev, LS_Pierce_C:LS_Pierce_R,
-                 eco_spec_all:colonization_success, EIV_light:EIV_nutr),
-            ~as.numeric(.x)) %>% 
-  select(-c(nr.gf:nr.sym)) %>% 
-  mutate(dist_freq = ifelse(GF_tree == 0 & GF_shrub == 0, dist_freq, NA), 
-         dist_sev = ifelse(GF_tree == 0 & GF_shrub == 0, dist_sev, NA))
+  left_join(read_csv('meta_data/species_characteristics.csv')) |> 
+  mutate(IUCN = str_replace_na(IUCN) |> fct_relevel(c("CR", "EN", "VU", "NT", "LC", 'NA')))
 
 # general statements ------------------------------------------------------
 # numbers of significantly increasing and decreasing species
@@ -421,16 +326,16 @@ ggsave(filename = paste0(path.plots, "occ_nogroup_lm.png"), width = 10, height =
 
 resdf.clip.join %>% 
   filter(lm.rank %in% c(1:50, (nrow(resdf.clip.join)-49):nrow(resdf.clip.join))) %>%
-  mutate(lm.rank = rank(lm.slope), IUCN = fct_relevel(IUCN, c("CR", "EN", "VU", "NT", "LC", 'NA')), 
+  mutate(lm.rank = rank(lm.slope), 
          specname = str_trim(specname, side = "both")) %>% 
   arrange(lm.rank) %>% 
   mutate(just = c(rep(0.0002, 50), rep(-0.0002, 50))) %>%
   ggplot()+
   theme_classic()+
   my.theme+
-  geom_bar(aes(x = lm.rank, y = lm.slope, fill = IUCN), stat = "identity")+
+  geom_bar(aes(x = lm.rank, y = lm.slope, fill = as.factor(IUCN)), stat = "identity")+
   geom_hline(yintercept = 0, col = "black")+
-  geom_text(aes(color = alien, x = lm.rank, y = just, label = specname), 
+  geom_text(aes(colour = alien, x = lm.rank, y = just, label = specname), 
             hjust = c(rep(0, 50), rep(1, 50)),
             size = 2.1)+
   scale_fill_manual(values = iucn.col, labels = c('Critically Endangered', 
@@ -523,17 +428,18 @@ resdf.clip.join %>%
   stat_poly_eq(formula = y~x, use_label(c("eq", "adj.R2", "P")), label.x = "right",  
                label.y = 0.01, size = 2.5, coef.digits = 2)+
   facet_wrap(~name, scales = "free_x", 
-             labeller = labeller(name = c(colonization_success = "(K) Colonization success", 
-                                          dist_freq = "(I) Disturbance frequency", 
-                                          dist_sev = "(J) Disturbance severity", 
-                                          eco_spec_all = "(L) Ecological specialization", 
+             labeller = labeller(name = c(LS_Pierce_C = "(A) Competitive strategy", 
+                                          LS_Pierce_S = "(B) Stress-tolerant strategy", 
+                                          LS_Pierce_R  = "(C) Ruderal strategy",
                                           EIV_light = "(D) Ellenberg light", 
+                                          EIV_temp = "(E) Ellenberg temperature",
                                           EIV_moist = "(F) Ellenberg moisture", 
                                           EIV_nutr = "(H) Ellenberg nutrients", 
                                           EIV_react = "(G) Ellenberg soil reaction", 
-                                          EIV_temp = "(E) Ellenberg temperature", 
-                                          LS_Pierce_C = "(A) Competitive strategy", 
-                                          LS_Pierce_R  = "(C) Ruderal strategy", LS_Pierce_S = "(B) Stress-tolerant strategy")))
+                                          dist_freq = "(I) Disturbance frequency", 
+                                          dist_sev = "(J) Disturbance severity", 
+                                          colonization_success = "(K) Colonization success",
+                                          eco_spec_all = "(L) Ecological specialization")))
 
 ggsave(paste0(path.plots, "linear_models.png"), height = 8, width = 11)
 ggsave(paste0(path.plots, "linear_models.svg"), height = 8, width = 11)
@@ -609,14 +515,11 @@ gf.plot <- annot.plot(col1 = "GF_annual", col2 = "GF_tree",
                                 "Clonal herb", "Dwarf shrub", "Shrub", "Tree"), 
                       exp.x = 80) 
 
-# Fig. 3
+# Fig. 3, further modified in Inkscape
 plot1 <- iucn.plot + biogeo.plot + gf.plot 
 ggsave(paste0(path.plots,"iucn_biogeo_gf_specnumber.png"), plot1, width = 13, height = 3.8)
+ggsave(paste0(path.plots,"iucn_biogeo_gf_specnumber.svg"), plot1, width = 13, height = 3.8)
 
-# export to svg
-svglite(paste0(path.plots,"iucn_biogeo_gf_specnumber.svg"), width = 13, height = 3.8)
-plot1
-dev.off()
 
 ### Appendix B.5
 # leaf life span
@@ -768,17 +671,12 @@ par.plot <- annot.plot(col1 = "Par_autotrophic", col2 = "Par_mycoheterotroph",
 
 
 
-# plots for appendix S8
+# plots for appendix S8, further modified in Inkscape
 plot2 <- lls.plot + la.plot + fl.per.plot + fl.ph.plot + gr.plot + poll.plot +
   rt.plot + ds.plot + myr.plot + n.plot + par.plot + plot_layout(ncol = 3) 
 
 ggsave(paste0(path.plots, "appendix_specnumber.png"), plot2, width = 13, height = 13)
-
-# export to svg
-svglite(paste0(path.plots, "appendix_specnumber.svg"), width = 13, height = 13)
-plot2
-dev.off()
-
+ggsave(paste0(path.plots, "appendix_specnumber.svg"), plot2, width = 13, height = 13)
 
 # clustering of temporal trends -------------------------------------------
 
@@ -794,7 +692,7 @@ clust.df2 <- clust.df %>%
   column_to_rownames("specname") 
 
 # standardize occupancy estimates
-clust.df.scaled <- ddply(clust.df,.(specname), function(x){
+clust.df.scaled <- ddply(clust.df, .(specname), function(x){
   x$median_scaled <- as.numeric(zscore(x$median))
   return(x)
 })
@@ -855,7 +753,7 @@ clust <- comp5$objects.partitional$config1_16
 resdf.clip.join2 <- resdf.clip.join %>% 
   bind_cols(cluster = clust@cluster)
 
-# number of species in each group
+# number of species in each cluster
 resdf.clip.join2 %>% 
   group_by(cluster) %>% 
   summarize(n = n())
@@ -866,10 +764,8 @@ resdf.clip.join2 %>%
   write_csv("clustering_results.csv")
 
 # loading clustering results
-clustering <- read_csv('results/clustering_results.csv')
-
 resdf.clip.join2 <- resdf.clip.join %>%
-  left_join(clustering)
+  left_join(read_csv('meta_data/clustering_results.csv'))
 
 # join occupancy trends with clutering results
 spec.trend <- occ.res %>%  
@@ -913,7 +809,7 @@ clust.line <- clust.df.scaled %>%
 clust.box + clust.line + plot_annotation(tag_levels = "A")
 ggsave(paste0(path.plots, "clustering2.png"), width = 8, height = 12)
 
-# select variables for Anova tests of diffrences between groups of species with similar trends
+# select variables for Anova tests of differences between groups of species with similar trends
 plot.df.anova <- resdf.clip.join2 %>% 
   mutate(cluster = fct_relevel(as.factor(cluster), c("1", "2", "5", "3", "4"))) %>% 
   select(specname, cluster, LS_Pierce_C, LS_Pierce_S, LS_Pierce_R, 
@@ -944,7 +840,7 @@ plot.df1 <- plot.df.anova %>%
 plot.df1$anova.m %>% 
   map(., ~autoplot(.x))
 
-# not normal distribution -> Kruskal-Wallis test
+# not normal distribution -> Kruskal-Wallis test + dunn test
 plot.df2 <- plot.df.anova %>% 
   group_by(name) %>% 
   filter(name %in% c("colonization_success", "LS_Pierce_S", "LS_Pierce_C")) %>% 
@@ -992,18 +888,18 @@ plot.df.anova %>%
   guides(color = guide_legend(nrow = 1), fill = guide_legend(nrow = 1))+
   theme(axis.title = element_blank(), legend.position = "bottom", axis.ticks.x = element_blank(),
         axis.text.x = element_blank(), legend.title = element_blank())+
-  facet_wrap(~name, scales = "free", labeller = labeller(name = c(colonization_success = "(K) Colonization success", 
+  facet_wrap(~name, scales = "free", labeller = labeller(name = c(LS_Pierce_C = "(A) Competitive strategy",
+                                                                  LS_Pierce_S = "(B) Stress-tolerant strategy", 
+                                                                  LS_Pierce_R  = "(C) Ruderal strategy", 
+                                                                  EIV_light = "(D) Ellenberg light", 
+                                                                  EIV_temp = "(E) Ellenberg temperature",
+                                                                  EIV_moist = "(F) Ellenberg moisture", 
+                                                                  EIV_react = "(G) Ellenberg soil reaction", 
+                                                                  EIV_nutr = "(H) Ellenberg nutrients", 
                                                                   dist_freq = "(I) Disturbance frequency", 
                                                                   dist_sev = "(J) Disturbance severity", 
-                                                                  eco_spec_all = "(L) Ecological specialization", 
-                                                                  EIV_light = "(D) Ellenberg light", 
-                                                                  EIV_moist = "(F) Ellenberg moisture", 
-                                                                  EIV_nutr = "(H) Ellenberg nutrients", 
-                                                                  EIV_react = "(G) Ellenberg soil reaction", 
-                                                                  EIV_temp = "(E) Ellenberg temperature", 
-                                                                  LS_Pierce_C = "(A) Competitive strategy", 
-                                                                  LS_Pierce_R  = "(C) Ruderal strategy", 
-                                                                  LS_Pierce_S = "(B) Stress-tolerant strategy")))
+                                                                  colonization_success = "(K) Colonization success", 
+                                                                  eco_spec_all = "(L) Ecological specialization")))
 
 ggsave(paste0(path.plots, "continuous_5clust_sbd_shape2.png"), height = 6, width = 8) 
 
@@ -1075,7 +971,7 @@ chi.n <- chi.test.clust(col1 = "symbiosis_N_fixers", col2 = "no_nitrogen_fixing"
 
 # export table with species trends Appendix A.3 ------------------------
 occ.res %>% 
-  left_join(read_csv("results/records_decades.csv") %>% 
+  left_join(read_csv("meta_data/records_decades.csv") %>% 
               filter(pres != 0) %>% 
               group_by(name_lat) %>% 
               summarize(clip.min = min(half_dec), clip.max = max(half_dec)), 
@@ -1099,4 +995,4 @@ occ.res %>%
                               "Increasing Continuously" = "3", 
                               "Decreasing" = "4"), 
          change.lm = ifelse(lm.p < 0.05, change.lm, NA)) %>% 
-  write_csv("change_traits.csv")
+  write_csv("species_trends.csv")
