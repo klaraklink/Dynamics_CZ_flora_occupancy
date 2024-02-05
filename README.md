@@ -25,7 +25,7 @@ The data used to estimate the species trends using occupancy models are availabl
 
 ## Code
 ### Occupancy model code for JAGS:
-* `randomwalk_ht.txt`: Original code from Outhwaite et al. (2018, https://doi.org/10.1016/j.ecolind.2018.05.010) with the addition of record origin effect
+* `randomwalk_ht.txt`: Original code from Outhwaite et al. (2018, https://doi.org/10.1016/j.ecolind.2018.05.010) with the addition of record origin effect.
 
 ### R scripts:
 
