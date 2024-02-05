@@ -209,7 +209,7 @@ annot.plot <- function(labtab, col1, col2, colvec, size.atext, labdist, title.le
 }
 
 ### annotation plot for categorical variables stored in one column
-annot.plot.1col <- function(df,colvec, colname, title.left,
+annot.plot.1col <- function(df, colvec, colname, title.left,
                             size.atext, labdist, label, exp.x = 50, annot.exp = 1){
   
   ### subset to current data frame, define analysis column
@@ -252,11 +252,11 @@ annot.plot.1col <- function(df,colvec, colname, title.left,
 # loading data ------------------------------------------------------------
 
 # load occupancy results, join numbers of occurrences in each half-decade
-occ.res <- read_csv("meta_data/occ_results_occupancy_60half_20230801.csv") %>% 
+occ.res <- read_csv("meta_data/occ_results.csv") %>% 
   left_join(read_csv("meta_data/records_decades.csv"), by = c("specname" = "name_lat", "parnum" = "half_dec"))
 
 # list of species with not converging results
-n.conv.full <- read_csv("meta_data/not_conv_all_230918.csv")
+n.conv.full <- read_csv("meta_data/not_conv_all.csv")
 
 # clipping records, calculation of regression slopes and filtering species with significant trends 
 resdf.clip <- occ.res %>% 

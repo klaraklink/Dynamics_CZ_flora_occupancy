@@ -54,7 +54,7 @@ occ.res.occ <- function(filepath){
     
   }
   
-  write_csv(occ.df, "results/occ_results_occupancy_60half_20230801.csv")
+  write_csv(occ.df, "results/occ_results.csv")
   
 }
 
