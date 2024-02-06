@@ -11,7 +11,7 @@ library(plyr) # version 1.8.8
 ###### tables
 library(janitor) # version 2.2.0 
 library(data.table) # version 1.14.8 
-library(readxl) # version 1.4.2 
+library(readxl) # version 1.4.3 
 
 ###### stats
 library(modelsummary) # version 1.4.1 
@@ -26,7 +26,7 @@ library(ggforce) # version 0.4.1
 library(ggfortify) # version 0.4.16
 library(patchwork) # version 1.1.2 
 library(ggpubr) # version 0.6.0 
-library(svglite) # version 2.1.1 
+library(svglite) # version 2.1.2 
 library(multcompView) # version 0.1-9 
 library(ggtext) # version 0.1.2
 
