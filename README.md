@@ -3,13 +3,13 @@
 ## Supplementary code and data to the article: 
 
 Klinkovská K., Glaser M., Danihelka J., Kaplan Z., Knollová I., Novotný P., Pyšek P., Řezníčková M., Wild J. & Chytrý M. (2024) Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes. Biological Conservation.
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10625479.svg)](https://doi.org/10.5281/zenodo.10625479)
 
 This repository contains data on plant species occurrences and plant characteristics from the Pladias Database of the Czech Flora and Vegetation (https://pladias.cz/en) and code used to analyse temporal trends of species of Czech flora from 1961 to 2020 using occupancy models. 
 
 ## Data
 ### Data used to calculate temporal trends of change in species frequency
-The data used to estimate the trends of change in species frequency using occupancy models are available in the Zenodo repository (#add Zenodo link#) and include a CSV file for each species, for which we calculated the occupancy model. The species name is in the file name. Each file consists of six comma-delimited columns: 
+The data used to estimate the trends of change in species frequency using occupancy models are available in the Zenodo repository ([![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10625479.svg)](https://doi.org/10.5281/zenodo.10625479)) and include a CSV file for each species, for which we calculated the occupancy model. The species name is in the file name. Each file consists of six comma-delimited columns: 
 * `grid_year_auth` = visit ID, a combination of a grid cell, year, author and record origin category (converted to a numeric variable)
 * `Nr_of_spec` = number of species recorded during the given visit 
 * `half_dec` = half-decade (1 = 1960s, 2 = 1965s...)
