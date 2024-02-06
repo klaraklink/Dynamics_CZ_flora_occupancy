@@ -3,6 +3,7 @@
 ## Supplementary code and data to the article: 
 
 Klinkovská K., Glaser M., Danihelka J., Kaplan Z., Knollová I., Novotný P., Pyšek P., Řezníčková M., Wild J. & Chytrý M. (2024) Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes. Biological Conservation.
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10625479.svg)](https://doi.org/10.5281/zenodo.10625479)
 
 This repository contains data on plant species occurrences and plant characteristics from the Pladias Database of the Czech Flora and Vegetation (https://pladias.cz/en) and code used to analyse temporal trends of species of Czech flora from 1961 to 2020 using occupancy models. 
