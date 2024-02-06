@@ -515,11 +515,14 @@ gf.plot <- annot.plot(col1 = "GF_annual", col2 = "GF_tree",
                                 "Clonal herb", "Dwarf shrub", "Shrub", "Tree"), 
                       exp.x = 80) 
 
-# Fig. 3, further modified in Inkscape
+# Fig. 3
 plot1 <- iucn.plot + biogeo.plot + gf.plot 
 ggsave(paste0(path.plots,"iucn_biogeo_gf_specnumber.png"), plot1, width = 13, height = 3.8)
-ggsave(paste0(path.plots,"iucn_biogeo_gf_specnumber.svg"), plot1, width = 13, height = 3.8)
 
+# export to svg, further modified in Inkscape
+svglite(paste0(path.plots,"iucn_biogeo_gf_specnumber.svg"), width = 13, height = 3.8)
+plot1
+dev.off()
 
 ### Appendix B.5
 # leaf life span
@@ -537,7 +540,7 @@ lls.plot <- annot.plot(col1 = "LLS_overwintering_green", col2 = "LLS_evergreen",
 
 
 # leaf anatomy
-chi.la <- chi.test.sim(col1 = "LA_succulent", col2 = "LA_hydromorphic", F, "")
+chi.la <- chi.test(col1 = "LA_succulent", col2 = "LA_hydromorphic", F, "", sim = T)
 chi.la
 0.05/((ncol(chi.la))*2)
 
@@ -575,7 +578,7 @@ fl.ph.plot <- annot.plot1(col1 = "flower_phase_1", col2 = "flower_phase_9",
                           title.left = "(D) Flower phase", my.theme = my.theme)
 
 # generative reproduction type
-chi.gr <- chi.test(col1 = "GR_allogamy", col2 = "GR_apomixis", F, "", F)
+chi.gr <- chi.test(col1 = "GR_allogamy", col2 = "GR_apomixis", F, "", T)
 chi.gr
 0.05/((ncol(chi.gr))*2)
 
@@ -602,7 +605,7 @@ poll.plot <- annot.plot(col1 = "wind_pollination", col2 = "selfing",
 
 
 # reproduction type
-chi.rt <- chi.test(col1 = "RT_veg", col2 = "RT_seed", F, "", F)
+chi.rt <- chi.test(col1 = "RT_veg", col2 = "RT_seed", F, "", T)
 chi.rt
 0.05/((ncol(chi.rt))*2)
 
@@ -657,7 +660,7 @@ n.plot <- annot.plot(col1 = "symbiosis_N_fixers", col2 = "no_nitrogen_fixing",
                      label = c("Symbiotic N fixers", "No nitrogen fixing")) 
 
 # autotrophic/parasite
-chi.au <- chi.test(col1 = "Par_autotrophic", col2 = "Par_mycoheterotroph", F, "", F)
+chi.au <- chi.test(col1 = "Par_autotrophic", col2 = "Par_mycoheterotroph", F, "", T)
 chi.au
 0.05/((ncol(chi.au))*2)
 
@@ -671,24 +674,28 @@ par.plot <- annot.plot(col1 = "Par_autotrophic", col2 = "Par_mycoheterotroph",
 
 
 
-# plots for appendix S8, further modified in Inkscape
+# plots for appendix S8
 plot2 <- lls.plot + la.plot + fl.per.plot + fl.ph.plot + gr.plot + poll.plot +
   rt.plot + ds.plot + myr.plot + n.plot + par.plot + plot_layout(ncol = 3) 
 
 ggsave(paste0(path.plots, "appendix_specnumber.png"), plot2, width = 13, height = 13)
-ggsave(paste0(path.plots, "appendix_specnumber.svg"), plot2, width = 13, height = 13)
+
+# export to svg, further modified in Inkscape
+svglite(paste0(path.plots, "appendix_specnumber.svg"), width = 13, height = 13)
+plot2
+dev.off()
 
 # clustering of temporal trends -------------------------------------------
 
 # logit transformation of occupancy estimates
 clust.df <- occ.res %>% 
   semi_join(resdf.clip.join) %>%  
-  select(specname, half_dec, median) %>% 
+  select(specname, parnum, median) %>% 
   mutate(median = logit(median)) 
 
 # to wide format for time-series clustering algorithm
 clust.df2 <- clust.df %>% 
-  pivot_wider(names_from = "half_dec", values_from = "median") %>% 
+  pivot_wider(names_from = "parnum", values_from = "median") %>% 
   column_to_rownames("specname") 
 
 # standardize occupancy estimates
@@ -725,8 +732,8 @@ p_cfgs <- compare_clusterings_configs(
 comparison_partitional <- compare_clusterings(clust.df2, types = "p",
                                               configs = p_cfgs,
                                               seed = 32903L, trace = TRUE,
-                                              score.clus = score_fun,
-                                              pick.clus = pick_fun,
+                                              #score.clus = score_fun,
+                                              #pick.clus = pick_fun,
                                               shuffle.configs = TRUE,
                                               return.objects = TRUE)
 
@@ -771,11 +778,11 @@ resdf.clip.join2 <- resdf.clip.join %>%
 spec.trend <- occ.res %>%  
   right_join(resdf.clip.join2) %>% 
   mutate(cluster = fct_relevel(as.factor(cluster), c("1", "2", "5", "3", "4"))) %>% 
-  select(specname, half_dec, median, cluster)
+  select(specname, parnum, median, cluster)
 
 # Fig. 4 boxplots
 clust.box <- spec.trend %>% 
-  ggplot(aes(as.factor(half_dec), median, fill = as.factor(cluster)))+
+  ggplot(aes(as.factor(parnum), median, fill = as.factor(cluster)))+
   geom_boxplot()+
   scale_fill_manual(values = clust.col)+
   theme_bw()+
@@ -786,13 +793,13 @@ clust.box <- spec.trend %>%
   facet_col(~cluster, labeller = labeller(cluster = c("1" = "Increasing Early (n = 249)", 
                                                       "2" = "Increasing Middle (n = 112)", 
                                                       "5" = "Increasing Recently (n = 179)",
-                                                      "3" = "Increasing Continuously (n = 214)", 
+                                                      "3" = "Increasing Continuously (n = 213)", 
                                                       "4" = "Decreasing (n = 320)")))
 # Fig. 4 line plots 
 clust.line <- clust.df.scaled %>% 
   right_join(spec.trend %>% select(-median)) %>% 
-  select(half_dec, median_scaled, specname, cluster) %>% 
-  ggplot(aes(half_dec, median_scaled, color = specname))+
+  select(parnum, median_scaled, specname, cluster) %>% 
+  ggplot(aes(parnum, median_scaled, color = specname))+
   geom_line() +
   theme_bw()+
   theme(axis.title.x = element_blank(), legend.position = "none", 
@@ -802,7 +809,7 @@ clust.line <- clust.df.scaled %>%
   facet_col(~cluster, labeller = labeller(cluster = c("1" = "Increasing Early (n = 249)", 
                                                       "2" = "Increasing Middle (n = 112)", 
                                                       "5" = "Increasing Recently (n = 179)",
-                                                      "3" = "Increasing Continuously (n = 214)", 
+                                                      "3" = "Increasing Continuously (n = 213)", 
                                                       "4" = "Decreasing (n = 320)")))
 
 # Fig. 4
