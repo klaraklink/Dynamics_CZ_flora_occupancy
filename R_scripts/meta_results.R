@@ -1,6 +1,6 @@
 #' Supplementary code to the article: 
 #' Klinkovska et al. (2024) Dynamics of the Czech flora over the last 60 years: winners, losers and causes of changes. Biological Conservation.
-#' 
+#'   
 #' Author: Klara Klinkovska, Michael Glaser, 2023-09-22
 #' R version 4.3.0
 
